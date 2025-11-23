@@ -1,5 +1,7 @@
 #include "ai_agent.h"
 #include "colours.h"
+#include <stdlib.h>
+#include <time.h>
 
 #define SCREEN_WIDTH   (2560)
 #define SCREEN_HEIGHT  (1440)
@@ -9,9 +11,11 @@ bool bDebug = true;
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game AI Programming");
     SetTargetFPS(120);
+    srand(time(NULL));
 
     ai_agent AIAgent = {
         { 1280.f, 720.f }, { 0.f, 0.f }, { 0.f, 0.f },
+        { 1280.f, 720.f },
         0.f, 0.f, 0.f,
         48.f,
         AI_STATE_SEEK,
@@ -24,7 +28,7 @@ int main(void) {
 
         // Controls
         if (IsKeyPressed(KEY_RIGHT)) {
-            if (AIAgent.State < AI_STATE_ARRIVE) {
+            if (AIAgent.State < AI_STATE_WANDER) {
                 AIAgent.State++;
             }
         } else if (IsKeyPressed(KEY_LEFT)) {

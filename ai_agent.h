@@ -1,6 +1,9 @@
 #pragma once
 #include "raylib.h"
 
+typedef Vector2 vector2;
+typedef Color   colour;
+
 typedef enum ai_states {
     AI_STATE_SEEK,
     AI_STATE_FLEE,
@@ -12,11 +15,12 @@ typedef enum ai_states {
 } ai_states;
 
 typedef struct ai_agent {
-    Vector2   Position, Velocity, Acceleration;
+    vector2   Position, Velocity, Acceleration;
+    vector2   Target;
     float     Orientation, Rotation, Angular;
     float     Radius;
     ai_states State;
-    Color     Colour;
+    colour    Colour;
 } ai_agent;
 
 void AIAgentUpdate(ai_agent *AIAgent);
