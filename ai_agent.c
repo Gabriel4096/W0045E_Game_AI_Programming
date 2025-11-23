@@ -1,14 +1,17 @@
 #include "ai_agent.h"
-#include "raymath.h"
-#include "colours.h"
-#include "maths.h"
 
-#define MAX_ACCELERATION  (512.f)
-#define MAX_SPEED         (256.f)
-#define SLOW_RADIUS       (128.f)
-#define MAX_ANGULAR       ( 32.f)
-#define MAX_PREDICTION    (  4.f)
-#define MAX_ROTATION      (TWO_PI)
+#include "colours.h"
+#include "consts.h"
+#include "maths.h"
+#include "raylib.h"
+#include "raymath.h"
+
+#define MAX_ACCELERATION (512.f)
+#define MAX_SPEED        (256.f)
+#define SLOW_RADIUS      (128.f)
+#define MAX_ANGULAR      ( 32.f)
+#define MAX_PREDICTION   (  4.f)
+#define MAX_ROTATION     (TWO_PI)
 
 extern bool bDebug;
 
@@ -122,6 +125,19 @@ static void Wander(ai_agent *AIAgent) {
 }
 
 
+void AIAgentInit(ai_agent *AIAgent, const vector2 StartPosition) {
+    AIAgent->Position     = StartPosition;
+    AIAgent->Velocity     = Vector2Zero();
+    AIAgent->Acceleration = Vector2Zero();
+    AIAgent->Target       = (vector2){ SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1 };
+    AIAgent->Orientation  = 0.f;
+    AIAgent->Rotation     = 0.f;
+    AIAgent->Angular      = 0.f;
+    AIAgent->Radius       = 48.f;
+    AIAgent->State        = AI_STATE_SEEK;
+    AIAgent->Colour       = AZURE;
+}
+
 void AIAgentUpdate(ai_agent *AIAgent) {
 	switch (AIAgent->State) {
     case AI_STATE_SEEK:
@@ -154,6 +170,8 @@ void AIAgentUpdate(ai_agent *AIAgent) {
     case AI_STATE_WANDER:
         Wander(AIAgent);
         Face(AIAgent);
+        break;
+    case AI_STATE_PATH:
         break;
 	default:
         return;
@@ -194,11 +212,12 @@ void AIAgentDraw(ai_agent *AIAgent) {
         //DrawLineEx(AIAgent->Position, Vector2Add(AIAgent->Position, Vector2Scale(Right, 2.f * AIAgent->Radius)), 4, AZURE);
         //DrawLineEx(AIAgent->Position, Vector2Add(AIAgent->Position, AIAgent->Acceleration), 2, GUPPIE_GREEN);
 
-        const float VisualRadius = SLOW_RADIUS - AIAgent->Radius;
-        DrawRing(GetMousePosition(), VisualRadius, VisualRadius - 4.f, 0.f, 360.f, 64, GUPPIE_GREEN);
-
         // TargetPosition
         DrawCircleV(AIAgent->Target, 16.f, MY_RED);
+
+        // Slow radius
+        const float VisualRadius = SLOW_RADIUS - AIAgent->Radius;
+        DrawRing(GetMousePosition(), VisualRadius, VisualRadius - 4.f, 0.f, 360.f, 64, GUPPIE_GREEN);
     }
 }
 
@@ -210,6 +229,7 @@ const char *GetAIStateString(ai_agent *AIAgent) {
     case AI_STATE_EVADE:  return "AI state: Evade";
     case AI_STATE_ARRIVE: return "AI state: Arrive";
     case AI_STATE_WANDER: return "AI state: Wander";
+    case AI_STATE_PATH:   return "AI state: Path";
     default: return "INVALID STATE!";
     }
 }

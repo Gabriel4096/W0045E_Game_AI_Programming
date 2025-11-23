@@ -131,11 +131,14 @@
   <ItemGroup>
     <ClCompile Include="ai_agent.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="path.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ai_agent.h" />
     <ClInclude Include="colours.h" />
+    <ClInclude Include="consts.h" />
     <ClInclude Include="maths.h" />
+    <ClInclude Include="path.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

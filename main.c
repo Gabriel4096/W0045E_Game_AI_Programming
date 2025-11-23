@@ -1,10 +1,9 @@
 #include "ai_agent.h"
 #include "colours.h"
+#include "consts.h"
+#include "path.h"
 #include <stdlib.h>
 #include <time.h>
-
-#define SCREEN_WIDTH   (2560)
-#define SCREEN_HEIGHT  (1440)
 
 bool bDebug = true;
 
@@ -13,14 +12,14 @@ int main(void) {
     SetTargetFPS(120);
     srand(time(NULL));
 
-    ai_agent AIAgent = {
-        { 1280.f, 720.f }, { 0.f, 0.f }, { 0.f, 0.f },
-        { 1280.f, 720.f },
-        0.f, 0.f, 0.f,
-        48.f,
-        AI_STATE_SEEK,
-        AZURE
-    };
+    const vector2 StartPosition = { SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1 };
+    ai_agent AIAgent;
+    AIAgentInit(&AIAgent, StartPosition);
+
+    vector2 Path[PATH_NODE_COUNT];
+    for (unsigned char i = 0; i < PATH_NODE_COUNT; i++) {
+        Path[i] = (vector2){ rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT };
+    }
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -28,7 +27,7 @@ int main(void) {
 
         // Controls
         if (IsKeyPressed(KEY_RIGHT)) {
-            if (AIAgent.State < AI_STATE_WANDER) {
+            if (AIAgent.State < AI_STATE_PATH) {
                 AIAgent.State++;
             }
         } else if (IsKeyPressed(KEY_LEFT)) {
@@ -40,14 +39,19 @@ int main(void) {
             bDebug = !bDebug;
         }
 
+        // Path
+        if (AIAgent.State == AI_STATE_PATH) {
+            PathDraw(Path);
+        }
+
         // AI agents
         AIAgentUpdate(&AIAgent);
         AIAgentDraw(&AIAgent);
 
         // Text
-        DrawText("Change AI mode with the Right and Left key.", 1280 - 16 * 44, 16, 64, AMBER);
-        DrawText("Press Enter to toggle debug visualizations.", 1280 - 16 * 44, 96, 64, AMBER);
-        DrawText(GetAIStateString(&AIAgent), 64, 1440 - 2 * 64, 64, AMBER);
+        DrawText("Change AI mode with the Right and Left key.", (SCREEN_WIDTH >> 1) - 16 * 44, 16, 64, AMBER);
+        DrawText("Press Enter to toggle debug visualizations.", (SCREEN_WIDTH >> 1) - 16 * 44, 96, 64, AMBER);
+        DrawText(GetAIStateString(&AIAgent), 64, SCREEN_HEIGHT - 2 * 64, 64, AMBER);
 
         EndDrawing();
     }

@@ -11,6 +11,7 @@ typedef enum ai_states {
     AI_STATE_EVADE,
     AI_STATE_ARRIVE,
     AI_STATE_WANDER,
+    AI_STATE_PATH,
     AI_STATES_COUNT
 } ai_states;
 
@@ -23,6 +24,7 @@ typedef struct ai_agent {
     colour    Colour;
 } ai_agent;
 
+void AIAgentInit(ai_agent *AIAgent, const vector2 StartPosition);
 void AIAgentUpdate(ai_agent *AIAgent);
 void AIAgentDraw(ai_agent *AIAgent);
 const char *GetAIStateString(ai_agent *AIAgent);
