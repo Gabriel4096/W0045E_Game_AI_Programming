@@ -5,4 +5,12 @@
 
 typedef Vector2 vector2;
 
-void PathDraw(vector2 Nodes[]);
+typedef struct path {
+    vector2 Nodes[PATH_NODE_COUNT];
+    //vector2 Directions[PATH_NODE_COUNT];
+    //float   Lengths[PATH_NODE_COUNT];
+} path;
+
+void PathInit(path *Path);
+vector2 PathFindClosestPoint(const path *Path, const vector2 Point);
+void PathDraw(path *Path);

@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+path Path;
 bool bDebug = true;
+
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Game AI Programming");
@@ -15,11 +17,7 @@ int main(void) {
     const vector2 StartPosition = { SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1 };
     ai_agent AIAgent;
     AIAgentInit(&AIAgent, StartPosition);
-
-    vector2 Path[PATH_NODE_COUNT];
-    for (unsigned char i = 0; i < PATH_NODE_COUNT; i++) {
-        Path[i] = (vector2){ rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT };
-    }
+    PathInit(&Path);
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -35,13 +33,16 @@ int main(void) {
                 AIAgent.State--;
             }
         }
+        if (IsKeyPressed(KEY_SPACE)) {
+            PathInit(&Path);
+        }
         if (IsKeyPressed(KEY_ENTER)) {
             bDebug = !bDebug;
         }
 
         // Path
         if (AIAgent.State == AI_STATE_PATH) {
-            PathDraw(Path);
+            PathDraw(&Path);
         }
 
         // AI agents

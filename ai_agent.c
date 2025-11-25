@@ -3,6 +3,7 @@
 #include "colours.h"
 #include "consts.h"
 #include "maths.h"
+#include "path.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -13,6 +14,7 @@
 #define MAX_PREDICTION   (  4.f)
 #define MAX_ROTATION     (TWO_PI)
 
+extern path Path;
 extern bool bDebug;
 
 static void Seek(ai_agent *AIAgent) {
@@ -130,12 +132,13 @@ void AIAgentInit(ai_agent *AIAgent, const vector2 StartPosition) {
     AIAgent->Velocity     = Vector2Zero();
     AIAgent->Acceleration = Vector2Zero();
     AIAgent->Target       = (vector2){ SCREEN_WIDTH >> 1, SCREEN_HEIGHT >> 1 };
-    AIAgent->Orientation  = 0.f;
-    AIAgent->Rotation     = 0.f;
-    AIAgent->Angular      = 0.f;
+    AIAgent->Orientation  =  0.f;
+    AIAgent->Rotation     =  0.f;
+    AIAgent->Angular      =  0.f;
     AIAgent->Radius       = 48.f;
     AIAgent->State        = AI_STATE_SEEK;
     AIAgent->Colour       = AZURE;
+    AIAgent->PathNodeId   = -1;
 }
 
 void AIAgentUpdate(ai_agent *AIAgent) {
@@ -172,6 +175,10 @@ void AIAgentUpdate(ai_agent *AIAgent) {
         Face(AIAgent);
         break;
     case AI_STATE_PATH:
+        AIAgent->Target = GetMousePosition();
+        Arrive(AIAgent);
+        Face(AIAgent);
+        PathFindClosestPoint(&Path, AIAgent->Position);
         break;
 	default:
         return;
@@ -213,7 +220,9 @@ void AIAgentDraw(ai_agent *AIAgent) {
         //DrawLineEx(AIAgent->Position, Vector2Add(AIAgent->Position, AIAgent->Acceleration), 2, GUPPIE_GREEN);
 
         // TargetPosition
-        DrawCircleV(AIAgent->Target, 16.f, MY_RED);
+        if (AIAgent->State != AI_STATE_PATH) {
+            DrawCircleV(AIAgent->Target, 16.f, MY_RED);
+        }
 
         // Slow radius
         const float VisualRadius = SLOW_RADIUS - AIAgent->Radius;

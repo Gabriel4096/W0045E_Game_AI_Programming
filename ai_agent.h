@@ -17,11 +17,12 @@ typedef enum ai_states {
 
 typedef struct ai_agent {
     vector2   Position, Velocity, Acceleration;
-    vector2   Target;
+    Vector2   Target;
     float     Orientation, Rotation, Angular;
     float     Radius;
     ai_states State;
     colour    Colour;
+    unsigned char PathNodeId;
 } ai_agent;
 
 void AIAgentInit(ai_agent *AIAgent, const vector2 StartPosition);
