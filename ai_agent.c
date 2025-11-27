@@ -9,10 +9,9 @@
 
 #define MAX_ACCELERATION (512.f)
 #define MAX_SPEED        (256.f)
-#define SLOW_RADIUS      (128.f)
-#define MAX_ANGULAR      ( 32.f)
-#define MAX_PREDICTION   (  4.f)
-#define MAX_ROTATION     (TWO_PI)
+#define MAX_ANGULAR       (32.f)
+#define MAX_PREDICTION     (4.f)
+#define MAX_ROTATION    (TWO_PI)
 
 extern path Path;
 extern bool bDebug;
@@ -43,7 +42,7 @@ static void Arrive(ai_agent *AIAgent) {
         AIAgent->Acceleration = AIAgent->Velocity = Vector2Zero();
         return;
     }
-    const float   TargetSpeed    = (Distance > SLOW_RADIUS) ? MAX_SPEED : MAX_SPEED * Distance / SLOW_RADIUS;
+    const float   TargetSpeed    = (Distance > AI_SLOW_RADIUS) ? MAX_SPEED : MAX_SPEED * Distance / AI_SLOW_RADIUS;
     const vector2 TargetVelocity = Vector2Scale(Vector2Normalize(Delta), TargetSpeed);
     const float   AccFactor      = 8.f;
     VelocityMatch(AIAgent, TargetVelocity, AccFactor);
@@ -103,8 +102,8 @@ static void LookVelocity(ai_agent *AIAgent) {
 }
 
 static void Wander(ai_agent *AIAgent) {
-    const float WanderOffset = 2.f * SLOW_RADIUS;
-    const float WanderRadius = SLOW_RADIUS;
+    const float WanderOffset = 2.f * AI_SLOW_RADIUS;
+    const float WanderRadius = AI_SLOW_RADIUS;
     const float WanderRate   = 16.f;
 
     vector2 WanderCircle;
@@ -138,7 +137,7 @@ void AIAgentInit(ai_agent *AIAgent, const vector2 StartPosition) {
     AIAgent->Radius       = 48.f;
     AIAgent->State        = AI_STATE_SEEK;
     AIAgent->Colour       = AZURE;
-    AIAgent->PathNodeId   = -1;
+    AIAgent->PathNodeId   = PATH_INVALID_NODE;
 }
 
 void AIAgentUpdate(ai_agent *AIAgent) {
@@ -175,10 +174,12 @@ void AIAgentUpdate(ai_agent *AIAgent) {
         Face(AIAgent);
         break;
     case AI_STATE_PATH:
-        AIAgent->Target = GetMousePosition();
-        Arrive(AIAgent);
+        AIAgent->Target = PathGetTarget(&Path, AIAgent);
+        const vector2 Delta          = Vector2Subtract(AIAgent->Target, AIAgent->Position);
+        const vector2 TargetVelocity = Vector2Scale(Vector2Normalize(Delta), MAX_SPEED);
+        const float   AccFactor      = 8.f;
+        VelocityMatch(AIAgent, TargetVelocity, AccFactor);
         Face(AIAgent);
-        PathFindClosestPoint(&Path, AIAgent->Position);
         break;
 	default:
         return;
@@ -220,12 +221,10 @@ void AIAgentDraw(ai_agent *AIAgent) {
         //DrawLineEx(AIAgent->Position, Vector2Add(AIAgent->Position, AIAgent->Acceleration), 2, GUPPIE_GREEN);
 
         // TargetPosition
-        if (AIAgent->State != AI_STATE_PATH) {
-            DrawCircleV(AIAgent->Target, 16.f, MY_RED);
-        }
+        DrawCircleV(AIAgent->Target, 12.f, MY_RED);
 
         // Slow radius
-        const float VisualRadius = SLOW_RADIUS - AIAgent->Radius;
+        const float VisualRadius = AI_SLOW_RADIUS - AIAgent->Radius;
         DrawRing(GetMousePosition(), VisualRadius, VisualRadius - 4.f, 0.f, 360.f, 64, GUPPIE_GREEN);
     }
 }

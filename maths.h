@@ -18,10 +18,10 @@ inline float RandomBinomal(void) {
 	return (float)(rand() - rand()) / RAND_MAX;
 }
 
-inline float Vector2ToRad(const vector2 V) {
+inline float Vector2ToRad(vector2 V) {
 	return atan2f(-V.x, -V.y);
 }
 
-inline vector2 RadToVector2(const float Rad) {
+inline vector2 RadToVector2(float Rad) {
 	return (vector2){ -sinf(Rad), -cosf(Rad) };
 }

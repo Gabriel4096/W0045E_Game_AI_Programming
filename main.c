@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-path Path;
 bool bDebug = true;
+path Path;
 
 
 int main(void) {
@@ -35,6 +35,7 @@ int main(void) {
         }
         if (IsKeyPressed(KEY_SPACE)) {
             PathInit(&Path);
+            AIAgent.PathNodeId = -1;
         }
         if (IsKeyPressed(KEY_ENTER)) {
             bDebug = !bDebug;
@@ -43,6 +44,8 @@ int main(void) {
         // Path
         if (AIAgent.State == AI_STATE_PATH) {
             PathDraw(&Path);
+        } else {
+            AIAgent.PathNodeId = -1;
         }
 
         // AI agents
@@ -52,7 +55,7 @@ int main(void) {
         // Text
         DrawText("Change AI mode with the Right and Left key.", (SCREEN_WIDTH >> 1) - 16 * 44, 16, 64, AMBER);
         DrawText("Press Enter to toggle debug visualizations.", (SCREEN_WIDTH >> 1) - 16 * 44, 96, 64, AMBER);
-        DrawText(GetAIStateString(&AIAgent), 64, SCREEN_HEIGHT - 2 * 64, 64, AMBER);
+        DrawText(GetAIStateString(&AIAgent), 64, SCREEN_HEIGHT - 96, 64, AMBER);
 
         EndDrawing();
     }

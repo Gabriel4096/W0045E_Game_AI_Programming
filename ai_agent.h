@@ -1,6 +1,8 @@
 #pragma once
 #include "raylib.h"
 
+#define AI_SLOW_RADIUS (128.f)
+
 typedef Vector2 vector2;
 typedef Color   colour;
 
