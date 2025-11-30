@@ -7,6 +7,7 @@
 #include "path.h"
 #include "raylib.h"
 #include "raymath.h"
+#include <stdio.h>
 
 #define MAX_ACCELERATION (512.f)
 #define MAX_SPEED        (256.f)
@@ -143,6 +144,65 @@ static void Separation(unsigned Id) {
     }
 }
 
+static void Collision(unsigned Id) {
+    float    ShortestTime = FLT_MAX;
+    unsigned FirstTarget  = AI_INVALID_ID;
+    float   FirstMinSeparation;
+    float   FirstDistance;
+    vector2 FirstRelPos;
+    vector2 FirstRelVel;
+    for (unsigned i = 0; i < AIAgents.Count; i++) {
+        if (i == Id) {
+            continue;
+        }
+        if (Vector2Distance(AIAgents.Position[i], AIAgents.Position[Id]) < AIAgents.Radius[i] + AIAgents.Radius[Id]) {
+            DrawRing(AIAgents.Position[Id], AIAgents.Radius[Id], AIAgents.Radius[Id] - 2.f, 0.f, 360.f, 32, AMBER);
+            //AIAgents.Velocity[Id] = Vector2Subtract(AIAgents.Velocity[Id], FirstRelPos);
+        }
+        const vector2 RelativePos     = Vector2Subtract(AIAgents.Position[i], AIAgents.Position[Id]);
+        const vector2 RelativeVel     = Vector2Subtract(AIAgents.Velocity[i], AIAgents.Velocity[Id]);
+        const float   RelSpeedSqr     = Vector2LengthSqr(RelativeVel);
+        const float   TimeToCollision = Vector2DotProduct(RelativePos, RelativeVel) / RelSpeedSqr;
+        const float   Distance        = Vector2Length(RelativePos);
+        const float   MinSeparation   = Distance - sqrtf(RelSpeedSqr) * TimeToCollision;
+        const float   Diameter        = AIAgents.Radius[i] + AIAgents.Radius[Id];
+        if (MinSeparation > Diameter) {
+            continue;
+        }
+        if (TimeToCollision > 0.f && TimeToCollision < ShortestTime) {
+            ShortestTime       = TimeToCollision;
+            FirstTarget        = i;
+            FirstMinSeparation = MinSeparation;
+            FirstDistance      = Distance;
+            FirstRelPos        = RelativePos;
+            FirstRelVel        = RelativeVel;
+        }
+    }
+    if (FirstTarget == AI_INVALID_ID) {
+        return;
+    }
+    //const vector2 RelativePos = (FirstMinSeparation <= 0.f || FirstDistance < AIAgents.Radius[FirstTarget] + AIAgents.Radius[Id]) ?
+    //      Vector2Subtract(AIAgents.Position[Id], AIAgents.Position[FirstTarget])
+    //    : Vector2Add(FirstRelPos, Vector2Scale(FirstRelVel, ShortestTime));
+    //if (Vector2Distance(AIAgents.Position[FirstTarget], AIAgents.Position[Id]) < AIAgents.Radius[FirstTarget] + AIAgents.Radius[Id]) {
+    //    DrawRing(AIAgents.Position[Id], AIAgents.Radius[Id], AIAgents.Radius[Id] - 2.f, 0.f, 360.f, 32, AMBER);
+    //    //AIAgents.Velocity[Id] = Vector2Subtract(AIAgents.Velocity[Id], FirstRelPos);
+    //}
+    vector2 RelativePos;
+    if (FirstMinSeparation <= 0.f || FirstDistance < AIAgents.Radius[FirstTarget] + AIAgents.Radius[Id]) {
+        RelativePos = Vector2Subtract(AIAgents.Position[Id], AIAgents.Position[FirstTarget]);
+        DrawLineV(AIAgents.Position[Id], Vector2Add(AIAgents.Position[Id], RelativePos), MY_RED);
+    } else {
+        RelativePos = Vector2Add(FirstRelPos, Vector2Scale(FirstRelVel, ShortestTime));
+        DrawLineV(AIAgents.Position[Id], Vector2Add(AIAgents.Position[Id], RelativePos), GUPPIE_GREEN);
+    }
+    AIAgents.Acceleration[Id] = Vector2Scale(Vector2Normalize(RelativePos), MAX_ACCELERATION);
+    AIAgents.Angular[Id]      = 0.f;
+    if (bDebug) {
+        //DrawLineV(AIAgents.Position[Id], Vector2Add(AIAgents.Position[Id], AIAgents.Acceleration[Id]), AMBER);
+    }
+}
+
 
 void AIAgentInit(unsigned Id, vector2 StartPosition, colour Colour) {
     AIAgents.Position[Id]     = StartPosition;
@@ -205,6 +265,12 @@ void AIAgentsUpdate() {
             Separation(i);
             LookVelocity(i);
             break;
+        case AI_STATE_COLLISION:
+            AIAgents.Target[i] = GetMousePosition();
+            Seek(i);
+            Collision(i);
+            LookVelocity(i);
+            break;
         default:
             return;
         }
@@ -245,7 +311,7 @@ void AIAgentsDraw() {
         if (bDebug) {
             //DrawLineEx(AIAgents.Position[i], Vector2Add(AIAgents.Position[i], Vector2Scale(Forward, 2.f * AIAgents.Radius[i])), 4, GUPPIE_GREEN);
             //DrawLineEx(AIAgents.Position[i], Vector2Add(AIAgents.Position[i], Vector2Scale(Right, 2.f * AIAgents.Radius[i])), 4, AZURE);
-            DrawLineEx(AIAgents.Position[i], Vector2Add(AIAgents.Position[i], AIAgents.Acceleration[i]), 2, GUPPIE_GREEN);
+            //DrawLineEx(AIAgents.Position[i], Vector2Add(AIAgents.Position[i], AIAgents.Acceleration[i]), 2, GUPPIE_GREEN);
 
             // TargetPosition
             DrawCircleV(AIAgents.Target[i], 12.f, MY_RED);
@@ -256,14 +322,15 @@ void AIAgentsDraw() {
 
 const char *GetAIStateString() {
     switch (AIAgents.State) {
-    case AI_STATE_SEEK:       return "AI state: Seek";
-    case AI_STATE_FLEE:       return "AI state: Flee";
-    case AI_STATE_PURSUE:     return "AI state: Pursue";
-    case AI_STATE_EVADE:      return "AI state: Evade";
-    case AI_STATE_ARRIVE:     return "AI state: Arrive";
-    case AI_STATE_WANDER:     return "AI state: Wander";
-    case AI_STATE_PATH:       return "AI state: Path";
-    case AI_STATE_SEPARATION: return "AI state: Separation";
+    case AI_STATE_SEEK:       return "AI mode: Seek";
+    case AI_STATE_FLEE:       return "AI mode: Flee";
+    case AI_STATE_PURSUE:     return "AI mode: Pursue";
+    case AI_STATE_EVADE:      return "AI mode: Evade";
+    case AI_STATE_ARRIVE:     return "AI mode: Arrive";
+    case AI_STATE_WANDER:     return "AI mode: Wander";
+    case AI_STATE_PATH:       return "AI mode: Path following";
+    case AI_STATE_SEPARATION: return "AI mode: Separation";
+    case AI_STATE_COLLISION:  return "AI mode: Collision avoidance";
     default: return "INVALID STATE!";
     }
 }

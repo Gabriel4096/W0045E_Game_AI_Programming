@@ -1,8 +1,9 @@
 #pragma once
 #include "raylib.h"
 
-#define AI_AGENTS_ALLOC (1023)
+#define AI_AGENTS_ALLOC (16)
 #define AI_SLOW_RADIUS (128.f)
+#define AI_INVALID_ID ((unsigned)-1)
 
 typedef Vector2 vector2;
 typedef Color   colour;
@@ -16,6 +17,7 @@ typedef enum ai_states {
     AI_STATE_WANDER,
     AI_STATE_PATH,
     AI_STATE_SEPARATION,
+    AI_STATE_COLLISION,
     AI_STATES_COUNT
 } ai_states;
 

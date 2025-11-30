@@ -64,7 +64,7 @@ int main(void) {
         }
 
         if (AIAgents.State == AI_STATE_SEPARATION) {
-            AIAgents.Count = 4;
+            AIAgents.Count = 2;
         }
 
         // AI agents
