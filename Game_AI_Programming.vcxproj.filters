@@ -18,7 +18,7 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ai_agent.c">
+    <ClCompile Include="ai_agents.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="path.c">
@@ -26,7 +26,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ai_agent.h">
+    <ClInclude Include="ai_agents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="colours.h">

@@ -129,12 +129,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ai_agent.c" />
+    <ClCompile Include="ai_agents.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="path.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ai_agent.h" />
+    <ClInclude Include="ai_agents.h" />
     <ClInclude Include="colours.h" />
     <ClInclude Include="consts.h" />
     <ClInclude Include="maths.h" />
