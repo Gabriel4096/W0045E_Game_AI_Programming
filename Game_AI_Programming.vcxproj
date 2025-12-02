@@ -130,11 +130,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ai_agents.c" />
+    <ClCompile Include="box.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="path.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ai_agents.h" />
+    <ClInclude Include="box.h" />
     <ClInclude Include="colours.h" />
     <ClInclude Include="consts.h" />
     <ClInclude Include="maths.h" />

@@ -1,7 +1,7 @@
 #pragma once
 #include "raylib.h"
 
-#define PATH_NODE_COUNT   (99)  // Max 2 digits
+#define PATH_NODE_COUNT   (8)  // Max 2 digits
 #define PATH_INVALID_NODE ((unsigned char)-1)
 
 typedef Vector2 vector2;

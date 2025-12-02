@@ -24,6 +24,9 @@
     <ClCompile Include="path.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="box.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ai_agents.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="path.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="box.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
