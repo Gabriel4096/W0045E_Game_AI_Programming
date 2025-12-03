@@ -78,16 +78,16 @@ int main(void) {
         // Path
         if (AIAgents.State == AI_STATE_PATH) {
             PathDraw(&Path);
-            AIAgents.Count = AI_AGENTS_ALLOC;
         } else {
             for (unsigned i = 0; i < AIAgents.Count; i++) {
                 AIAgents.PathNodeId[i] = -1;
             }
-            AIAgents.Count = 1;
         }
 
         if (AIAgents.State == AI_STATE_SEPARATION || AIAgents.State == AI_STATE_COLLISION) {
             AIAgents.Count = 2;
+        } else {
+            AIAgents.Count = 1;
         }
 
         // Obstacles / Walls

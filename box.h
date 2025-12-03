@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#define BOXES_ALLOC (1)
+#define BOXES_ALLOC (4)
 
 typedef Vector2 vector2;
 typedef Color   colour;

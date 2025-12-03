@@ -52,17 +52,14 @@ ray_hit BoxRayIntersect(unsigned BoxId, vector2 RayStart, vector2 RayDelta) {
         Denominator = 1.f / Denominator;
 
         const float RayFactor = (Line.x * y31 - Line.y * x31) * Denominator;
-        //if (RayFactor < 0.f || RayFactor > 1.f) {
-        //    continue;
-        //}
+        if (RayFactor < 0.f || RayFactor > 1.f) {
+            continue;
+        }
         const float LineFactor = (RayDelta.x * y31 - RayDelta.y * x31) * Denominator;
-        //if (LineFactor < 0.f || LineFactor > 1.f) {
-        //    continue;
-        //}
+        if (LineFactor < 0.f || LineFactor > 1.f) {
+            continue;
+        }
         const vector2 Intersect = Vector2Add(RayStart, Vector2Scale(RayDelta, RayFactor));
-        DrawCircleV(Intersect, 12.f, GUPPIE_GREEN);
-        char Number[2] = { '1' + i, '\0' };
-        DrawText(Number, (int)Intersect.x + 32, (int)Intersect.y + 32, 64, GUPPIE_GREEN);
         const float   DistSqr   = Vector2DistanceSqr(RayStart, Intersect);
         if (DistSqr < Result.Distance) {
             Result.Point    = Intersect;
@@ -72,7 +69,7 @@ ray_hit BoxRayIntersect(unsigned BoxId, vector2 RayStart, vector2 RayDelta) {
         }
     }
     if (BoxPointId != -1) {
-        Result.Normal   = (vector2){ -FirstLine.y, FirstLine.x };
+        Result.Normal   = Vector2Normalize((vector2){ -FirstLine.y, FirstLine.x });
         Result.Distance = sqrtf(Result.Distance);
         Result.bHit     = true;
     }

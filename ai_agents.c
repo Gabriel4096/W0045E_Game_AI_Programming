@@ -188,27 +188,35 @@ static void Collision(unsigned Id) {
 }
 
 static void Obstacle(unsigned Id) {
-    const float RayLength = 2.f * AI_SLOW_RADIUS;
-    const float SpeedSqr  = Vector2LengthSqr(AIAgents.Velocity[Id]);
-    vector2 RayDir = (SpeedSqr >= FLT_EPSILON) ? Vector2Scale(AIAgents.Velocity[Id], 1.f / sqrtf(SpeedSqr)) : RadToVector2(AIAgents.Orientation[Id]);
-
-    const vector2 RayStart  = Vector2Add(AIAgents.Position[Id], Vector2Scale(RayDir, AIAgents.Radius[Id]));
-    RayDir = Vector2Scale(RayDir, RayLength);
-    if (bDebug) {
-        DrawLineEx(RayStart, Vector2Add(RayStart, RayDir), 2.f, GUPPIE_GREEN);
+    const float SpeedSqr = Vector2LengthSqr(AIAgents.Velocity[Id]);
+    if (SpeedSqr == 0.f) {
+        return;
     }
+    vector2 RayDir = Vector2Normalize(Vector2Subtract(AIAgents.Target[Id], AIAgents.Position[Id]));
+
+    const float RayLength = 2.f * AI_SLOW_RADIUS;
+    RayDir = Vector2Scale(RayDir, RayLength);
+
     ray_hit FirstHit = { .bHit = false, .Distance = FLT_MAX };
     for (unsigned i = 0; i < Boxes.Count; i++) {
-        ray_hit Hit = BoxRayIntersect(i, RayStart, RayDir);
+        ray_hit Hit = BoxRayIntersect(i, AIAgents.Position[Id], RayDir);
         if (Hit.bHit && Hit.Distance < FirstHit.Distance) {
             FirstHit = Hit;
         }
     }
-    if (FirstHit.bHit) {
-	    if (bDebug) {
-		    //DrawCircleV(FirstHit.Point, 12.f, MY_ORANGE);
-	    }
+    if (!FirstHit.bHit) {
+        if (bDebug) {
+            DrawLineEx(AIAgents.Position[Id], Vector2Add(AIAgents.Position[Id], RayDir), 3.f, GUPPIE_GREEN);
+        }
+        return;
     }
+    AIAgents.Target[Id] = Vector2Add(FirstHit.Point, Vector2Scale(FirstHit.Normal, 2.f * AIAgents.Radius[Id]));
+    Seek(Id);
+	if (bDebug) {
+        DrawLineEx(AIAgents.Position[Id], FirstHit.Point, 3.f, GUPPIE_GREEN);
+		DrawCircleV(FirstHit.Point, 12.f, GUPPIE_GREEN);
+        DrawLineEx(FirstHit.Point, AIAgents.Target[Id], 3.f, MY_RED);
+	}
 }
 
 
@@ -261,9 +269,9 @@ void AIAgentsUpdate() {
             break;
         case AI_STATE_PATH:
             AIAgents.Target[i] = PathGetTarget(&Path, i);
-            const vector2 Delta = Vector2Subtract(AIAgents.Target[i], AIAgents.Position[i]);
+            const vector2 Delta          = Vector2Subtract(AIAgents.Target[i], AIAgents.Position[i]);
             const vector2 TargetVelocity = Vector2Scale(Vector2Normalize(Delta), MAX_SPEED);
-            const float   AccFactor = 8.f;
+            const float   AccFactor      = 8.f;
             VelocityMatch(i, TargetVelocity, AccFactor);
             Face(i);
             break;
@@ -283,7 +291,7 @@ void AIAgentsUpdate() {
             AIAgents.Target[i] = GetMousePosition();
             Arrive(i);
             Obstacle(i);
-            Face(i);
+            LookVelocity(i);
             break;
         default:
             return;
