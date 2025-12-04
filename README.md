@@ -1,6 +1,6 @@
 # Controls.
-**Left**/**Right** arrows: Switch AI modes
-**Spacebar**: Randomize Path & Obstacles
+**Left**/**Right** arrows: Switch AI modes\
+**Spacebar**: Randomize Path & Obstacles\
 **Enter**: Toggle Visualizations
 # Remarks.
 **Seek**, **Flee**, **Pursue**, **Evade**, **Arrive**, **Wander** and **Path Following** works well.
