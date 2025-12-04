@@ -1,7 +1,7 @@
 #pragma once
 #include "raylib.h"
 
-#define AI_AGENTS_ALLOC (2)
+#define AI_AGENTS_ALLOC  (4)
 #define AI_SLOW_RADIUS (128.f)
 #define AI_INVALID_ID ((unsigned)-1)
 
@@ -19,6 +19,7 @@ typedef enum ai_states {
     AI_STATE_SEPARATION,
     AI_STATE_COLLISION,
     AI_STATE_OBSTACLE,
+    AI_STATE_COMBINED,
     AI_STATES_COUNT
 } ai_states;
 

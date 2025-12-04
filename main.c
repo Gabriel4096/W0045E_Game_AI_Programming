@@ -9,8 +9,10 @@
 
 path Path;
 bool bDebug = true;
-extern ai_agents AIAgents = { .Count = 1, .State = AI_STATE_OBSTACLE };
+extern ai_agents AIAgents = { .Count = 1, .State = AI_STATE_SEEK };
 extern boxes     Boxes    = { .Count = 0 };
+
+void SetScene();
 
 
 int main(void) {
@@ -49,26 +51,21 @@ int main(void) {
 
         // Controls
         if (IsKeyPressed(KEY_RIGHT)) {
-            if (AIAgents.State < AI_STATES_COUNT) {
+            if (AIAgents.State < AI_STATE_COMBINED) {
                 AIAgents.State++;
             }
+            SetScene();
         } else if (IsKeyPressed(KEY_LEFT)) {
             if (AIAgents.State) {
                 AIAgents.State--;
             }
+            SetScene();
         }
         if (IsKeyPressed(KEY_SPACE)) {
+            PathInit(&Path);
+            BoxesInit();
             for (unsigned i = 0; i < AIAgents.Count; i++) {
-                AIAgents.PathNodeId[i] = -1;
-            }
-            switch (AIAgents.State) {
-            case AI_STATE_PATH:
-                PathInit(&Path);
-                break;
-            case AI_STATE_OBSTACLE:
-                BoxesInit();
-            default:
-                break;
+                AIAgents.PathNodeId[i] = PATH_INVALID_NODE;
             }
         }
         if (IsKeyPressed(KEY_ENTER)) {
@@ -76,22 +73,11 @@ int main(void) {
         }
 
         // Path
-        if (AIAgents.State == AI_STATE_PATH) {
+        if (AIAgents.State == AI_STATE_PATH || AIAgents.State == AI_STATE_COMBINED) {
             PathDraw(&Path);
-        } else {
-            for (unsigned i = 0; i < AIAgents.Count; i++) {
-                AIAgents.PathNodeId[i] = -1;
-            }
-        }
-
-        if (AIAgents.State == AI_STATE_SEPARATION || AIAgents.State == AI_STATE_COLLISION) {
-            AIAgents.Count = 2;
-        } else {
-            AIAgents.Count = 1;
         }
 
         // Obstacles / Walls
-        Boxes.Count = (AIAgents.State == AI_STATE_OBSTACLE) * BOXES_ALLOC;
         BoxesDraw();
 
         // AI agents
@@ -103,9 +89,7 @@ int main(void) {
         DrawRing(GetMousePosition(), VisualRadius, VisualRadius - 4.f, 0.f, 360.f, 64, GUPPIE_GREEN);
 
         // Text
-        DrawText("Change AI mode with the Right and Left key.", (SCREEN_WIDTH >> 1) - 16 * 44, 16, 64, AMBER);
-        DrawText("Press Enter to toggle debug visualizations.", (SCREEN_WIDTH >> 1) - 16 * 44, 96, 64, AMBER);
-        DrawText(GetAIStateString(), 64, SCREEN_HEIGHT - 96, 64, AMBER);
+        DrawText(GetAIStateString(), 64, 16, 64, AMBER);
 
         EndDrawing();
     }
@@ -113,4 +97,39 @@ int main(void) {
     CloseWindow();
 
     return 0;
+}
+
+
+void SetScene() {
+    switch (AIAgents.State) {
+    case AI_STATE_SEEK:   break;
+    case AI_STATE_FLEE:   break;
+    case AI_STATE_PURSUE: break;
+    case AI_STATE_EVADE:  break;
+    case AI_STATE_ARRIVE: break;
+    case AI_STATE_WANDER: break;
+    case AI_STATE_PATH:
+        AIAgents.Count = 1;
+        Boxes.Count    = 0;
+        for (unsigned i = 0; i < AIAgents.Count; i++) {
+            AIAgents.PathNodeId[i] = PATH_INVALID_NODE;
+        }
+        break;
+    case AI_STATE_SEPARATION:
+        AIAgents.Count = AI_AGENTS_ALLOC;
+        Boxes.Count    = 0;
+        break;
+    case AI_STATE_COLLISION:
+        AIAgents.Count = AI_AGENTS_ALLOC;
+        Boxes.Count    = 0;
+        break;
+    case AI_STATE_OBSTACLE:
+        AIAgents.Count = 1;
+        Boxes.Count    = BOXES_ALLOC;
+        break;
+    case AI_STATE_COMBINED:
+        AIAgents.Count = AI_AGENTS_ALLOC;
+        Boxes.Count    = BOXES_ALLOC;
+        break;
+    }
 }

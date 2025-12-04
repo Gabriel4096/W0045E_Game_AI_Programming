@@ -125,6 +125,14 @@ static void Wander(unsigned Id) {
     }
 }
 
+static void PathFollow(unsigned Id) {
+    AIAgents.Target[Id] = PathGetTarget(&Path, Id);
+    const vector2 Delta          = Vector2Subtract(AIAgents.Target[Id], AIAgents.Position[Id]);
+    const vector2 TargetVelocity = Vector2Scale(Vector2Normalize(Delta), MAX_SPEED);
+    const float   AccFactor      = 8.f;
+    VelocityMatch(Id, TargetVelocity, AccFactor);
+}
+
 static void Separation(unsigned Id) {
     const float Thresh = 4.f * AI_SLOW_RADIUS * AI_SLOW_RADIUS;
     const float Decay  = Thresh * Thresh;
@@ -172,10 +180,6 @@ static void Collision(unsigned Id) {
             FirstRelPos        = RelativePos;
             FirstRelVel        = RelativeVel;
         }
-        if (bDebug) {
-            const vector2 FuturePos = Vector2Add(AIAgents.Position[Id], Vector2Scale(AIAgents.Velocity[Id], TimeToCollision));
-            DrawRing(FuturePos, AIAgents.Radius[Id], AIAgents.Radius[Id] - 2.f, 0.f, 360.f, 32, AMBER);
-        }
     }
     if (FirstTarget == AI_INVALID_ID) {
         return;
@@ -192,9 +196,8 @@ static void Obstacle(unsigned Id) {
     if (SpeedSqr == 0.f) {
         return;
     }
-    vector2 RayDir = Vector2Normalize(Vector2Subtract(AIAgents.Target[Id], AIAgents.Position[Id]));
-
     const float RayLength = 2.f * AI_SLOW_RADIUS;
+    vector2 RayDir = Vector2Normalize(Vector2Subtract(AIAgents.Target[Id], AIAgents.Position[Id]));
     RayDir = Vector2Scale(RayDir, RayLength);
 
     ray_hit FirstHit = { .bHit = false, .Distance = FLT_MAX };
@@ -268,11 +271,7 @@ void AIAgentsUpdate() {
             Face(i);
             break;
         case AI_STATE_PATH:
-            AIAgents.Target[i] = PathGetTarget(&Path, i);
-            const vector2 Delta          = Vector2Subtract(AIAgents.Target[i], AIAgents.Position[i]);
-            const vector2 TargetVelocity = Vector2Scale(Vector2Normalize(Delta), MAX_SPEED);
-            const float   AccFactor      = 8.f;
-            VelocityMatch(i, TargetVelocity, AccFactor);
+            PathFollow(i);
             Face(i);
             break;
         case AI_STATE_SEPARATION:
@@ -290,6 +289,12 @@ void AIAgentsUpdate() {
         case AI_STATE_OBSTACLE:
             AIAgents.Target[i] = GetMousePosition();
             Arrive(i);
+            Obstacle(i);
+            LookVelocity(i);
+            break;
+        case AI_STATE_COMBINED:
+            PathFollow(i);
+            Separation(i);
             Obstacle(i);
             LookVelocity(i);
             break;
@@ -315,11 +320,16 @@ void AIAgentsUpdate() {
         }
 
         // Wrap around
-        const float Diameter = 2.f * AIAgents.Radius[i];
-        const float Width    = SCREEN_WIDTH  + Diameter;
-        const float Height   = SCREEN_HEIGHT + Diameter;
-        AIAgents.Position[i].x -=  Width * floorf((AIAgents.Position[i].x + AIAgents.Radius[i]) / Width );
-        AIAgents.Position[i].y -= Height * floorf((AIAgents.Position[i].y + AIAgents.Radius[i]) / Height);
+        if (AIAgents.Position[i].x < -AIAgents.Radius[i] || AIAgents.Position[i].x > SCREEN_WIDTH + AIAgents.Radius[i]) {
+            const float Width = SCREEN_WIDTH + 2.f * AIAgents.Radius[i];
+            AIAgents.Position[i].x -=  Width * floorf((AIAgents.Position[i].x + AIAgents.Radius[i]) / Width );
+            AIAgents.PathNodeId[i] = PATH_INVALID_NODE;
+        }
+        if (AIAgents.Position[i].y < -AIAgents.Radius[i] || AIAgents.Position[i].y > SCREEN_HEIGHT + AIAgents.Radius[i]) {
+            const float Height = SCREEN_HEIGHT + 2.f * AIAgents.Radius[i];
+            AIAgents.Position[i].y -= Height * floorf((AIAgents.Position[i].y + AIAgents.Radius[i]) / Height);
+            AIAgents.PathNodeId[i] = PATH_INVALID_NODE;
+        }
     }
 }
 
@@ -335,16 +345,10 @@ void AIAgentsDraw() {
                      Vector2Add(AIAgents.Position[i], LeftPoint),
                      Vector2Add(AIAgents.Position[i], RightPoint),
                      AIAgents.Colour[i]);
-
         if (bDebug) {
-            //DrawLineEx(AIAgents.Position[i], Vector2Add(AIAgents.Position[i], Vector2Scale(Forward, 2.f * AIAgents.Radius[i])), 4, GUPPIE_GREEN);
-            //DrawLineEx(AIAgents.Position[i], Vector2Add(AIAgents.Position[i], Vector2Scale(Right, 2.f * AIAgents.Radius[i])), 4, AZURE);
-            //DrawLineEx(AIAgents.Position[i], Vector2Add(AIAgents.Position[i], AIAgents.Acceleration[i]), 2, GUPPIE_GREEN);
-
             // TargetPosition
             DrawCircleV(AIAgents.Target[i], 12.f, MY_RED);
         }
-
     }
 }
 
@@ -360,6 +364,7 @@ const char *GetAIStateString() {
     case AI_STATE_SEPARATION: return "AI mode: Separation";
     case AI_STATE_COLLISION:  return "AI mode: Collision avoidance";
     case AI_STATE_OBSTACLE:   return "AI mode: Obstacle and Wall Avoidance.";
+    case AI_STATE_COMBINED:   return "AI mode: Combined Steering Behaviors";
     default: return "INVALID STATE!";
     }
 }
